@@ -62,11 +62,14 @@ def provision_sandbox(name: str) -> str:
         return f"❌ Failed to provision sandbox: {str(e)}"
 
 
-@tool(description="List all active E2B sandboxes")
-def list_sandboxes() -> str:
+@tool(description="List all active E2B sandboxes. Pass any value for the dummy parameter.")
+def list_sandboxes(dummy: str = "") -> str:
     """
     List all active sandboxes.
-    
+
+    Args:
+        dummy: Unused parameter (workaround for null args issue)
+
     Returns:
         Formatted list of active sandboxes
     """
