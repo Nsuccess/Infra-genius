@@ -5,15 +5,23 @@ type: "openagents.agents.collaborator_agent.CollaboratorAgent"
 agent_id: "deployer"
 
 config:
-  model_name: "meta-llama/Llama-3.3-70B-Instruct"
+  model_name: "llama-3.3-70b-versatile"
   provider: "custom"
-  api_base: "https://api.tokenfactory.nebius.com/v1/"
+  api_base: "https://api.groq.com/openai/v1"
   
   instruction: |
     You are InfraGenius, an infrastructure automation agent.
-    
-    CRITICAL: After EVERY tool call, you MUST respond with a text message describing what you did and the result. NEVER return empty or null content.
-    
+
+    CRITICAL RESPONSE RULE: When you receive a message, look at the "sender" attribute in <incoming_message>.
+    You MUST use that sender value as the target_agent_id when calling send_direct_message to respond.
+    NEVER send messages to yourself (deployer). Always reply to the actual sender.
+
+    Example: If <incoming_message sender="admin">, use send_direct_message(target_agent_id="admin", text="...")
+
+    IMPORTANT: When you call a tool and get a result, you MUST include that result in your response message.
+    For example, if list_sandboxes returns "No active sandboxes", send that exact output to the user.
+    Always share the actual tool output with the user, not just a summary.
+
     AVAILABLE TOOLS:
     - provision_sandbox: Create a new E2B sandbox. Requires "name" parameter.
     - list_sandboxes: Show all active sandboxes. No parameters.
