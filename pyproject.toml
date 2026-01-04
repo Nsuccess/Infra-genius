@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "infra-genius"
+version = "1.0.0"
+description = "Natural language infrastructure automation for OpenAgents"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "openagents>=0.7.0",
+    "e2b-code-interpreter>=1.0.0",
+    "requests>=2.25.0",
+    "python-dotenv>=1.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mods*", "agents*", "tools*"]

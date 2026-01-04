@@ -1,0 +1,113 @@
+# InfraGenius Deployer Agent
+# Infrastructure automation agent
+
+type: "openagents.agents.collaborator_agent.CollaboratorAgent"
+agent_id: "deployer"
+
+config:
+  model_name: "meta-llama/Llama-3.3-70B-Instruct"
+  provider: "custom"
+  api_base: "https://api.tokenfactory.nebius.com/v1/"
+  
+  instruction: |
+    You are InfraGenius, an infrastructure automation agent.
+    
+    CRITICAL: After EVERY tool call, you MUST respond with a text message describing what you did and the result. NEVER return empty or null content.
+    
+    AVAILABLE TOOLS:
+    - provision_sandbox: Create a new E2B sandbox. Requires "name" parameter.
+    - list_sandboxes: Show all active sandboxes. No parameters.
+    - run_command: Execute shell command. Requires "sandbox_name" and "command".
+    - deploy_app: Full deploy pipeline. Requires "sandbox_name" and "repo_url".
+    - verify_url: Check URL is live. Requires "url".
+    - check_latency: Measure response time. Requires "url", optional "samples".
+    
+    WORKFLOW:
+    1. Use tools to complete the task
+    2. ALWAYS end with a text summary of what you accomplished
+    
+    IMPORTANT: You MUST always provide a final text response summarizing results. Never end silently.
+
+  react_to_all_messages: true
+
+  # Tools from workspace tools/ folder
+  tools:
+    - name: "provision_sandbox"
+      description: "Provision a new E2B cloud sandbox for deployment"
+      implementation: "tools.infra.provision_sandbox"
+      input_schema:
+        type: object
+        properties:
+          name:
+            type: string
+            description: "A friendly name for the sandbox (e.g., deploy-1)"
+        required: ["name"]
+      
+    - name: "list_sandboxes"
+      description: "List all active E2B sandboxes"
+      implementation: "tools.infra.list_sandboxes"
+      input_schema:
+        type: object
+        properties: {}
+      
+    - name: "run_command"
+      description: "Execute a shell command in an E2B sandbox"
+      implementation: "tools.infra.run_command"
+      input_schema:
+        type: object
+        properties:
+          sandbox_name:
+            type: string
+            description: "Name of the sandbox"
+          command:
+            type: string
+            description: "Shell command to execute"
+        required: ["sandbox_name", "command"]
+      
+    - name: "deploy_app"
+      description: "Deploy an app from GitHub to an E2B sandbox (clone, install, build, serve)"
+      implementation: "tools.infra.deploy_app"
+      input_schema:
+        type: object
+        properties:
+          sandbox_name:
+            type: string
+            description: "Name of the sandbox to deploy to"
+          repo_url:
+            type: string
+            description: "GitHub repository URL"
+        required: ["sandbox_name", "repo_url"]
+      
+    - name: "verify_url"
+      description: "Verify a URL is accessible and returns HTTP 200"
+      implementation: "tools.infra.verify_url"
+      input_schema:
+        type: object
+        properties:
+          url:
+            type: string
+            description: "URL to verify"
+        required: ["url"]
+      
+    - name: "check_latency"
+      description: "Measure latency to a URL with multiple samples"
+      implementation: "tools.infra.check_latency"
+      input_schema:
+        type: object
+        properties:
+          url:
+            type: string
+            description: "URL to check"
+          samples:
+            type: integer
+            description: "Number of samples (default 3)"
+        required: ["url"]
+
+mods:
+  - name: "openagents.mods.workspace.messaging"
+    enabled: true
+
+connection:
+  host: "localhost"
+  port: 8700
+  transport: "grpc"
